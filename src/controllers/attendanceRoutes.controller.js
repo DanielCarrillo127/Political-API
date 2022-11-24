@@ -82,14 +82,14 @@ controller.deleteAttendance = async (req, res) => {
     if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
     
     //find and assign to variable
-    const attendant =  await attendanceModel.findOne({ eventid : req.body.eventid });
-
+    const attendants = await attendanceModel.find({eventid: req.body.eventid}).lean()
+    const findAttendant = attendants.find(a => a.attendant.cedula === req.body.attendantCedula)  
     try {
-        if (attendant !== null) {
-            await attendanceModel.deleteOne({ eventid : req.body.eventid, _id: id });
+        if (findAttendant) {
+            await attendanceModel.deleteOne({ eventid : req.body.eventid, _id: findAttendant._id });
             res.json("Delete sucefully")
         } else {
-            res.json({ message: 'attendant dont exist in database' })
+            res.json({ message: 'attendant dont exist in database for this event' })
         }
 
     } catch (error) {
