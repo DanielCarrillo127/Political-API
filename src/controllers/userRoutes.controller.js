@@ -59,7 +59,7 @@ controller.loginUser = async (req, res) => {
     try {
         if (!req.body.cedula || !req.body.password) return res.sendStatus(400)
         const user = await userModel.findOne({ cedula: req.body.cedula }, '-_id -__v')
-
+        if (!user) { return res.status(404).json({ message: 'User not found' }) }
         if (user.role === "VOTER") { return res.status(403).send({ message: 'Action not allowed' }) }
 
         if (user) {
@@ -73,14 +73,14 @@ controller.loginUser = async (req, res) => {
             if (validPassword) {
                 res.status(200).json({ message: 'Login sucefully!', accesToken: accesToken, info: user })
             } else {
-                res.status(404).json({ data: "Password incorrect" })
+                res.status(404).json({ message: "Password incorrect" })
             }
         } else {
-            res.status(404).json({ data: "Username incorrect" })
+            res.status(404).json({ message: "Username incorrect" })
         }
     } catch (error) {
         console.log(error)
-        res.status(500).json({ data: "Server internal error" })
+        res.status(500).json({ message: "Server internal error" })
     }
 }
 

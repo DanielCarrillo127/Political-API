@@ -20,7 +20,7 @@ router.route('/getAllUsers')
     .get(getAllUsers)
 
 router.route('/loginUser')
-    .get(loginUser)
+    .post(loginUser)
 
 router.route('/getAllVotersByLeader')
     .get(getAllVotersByLeader)
