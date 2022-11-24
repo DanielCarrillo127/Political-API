@@ -1,7 +1,7 @@
 const mongoose  = require ('mongoose');
 
 
-const URI = process.env.MONGODB_URL ? process.env.MONGODB_URL : console.log('No found database');
+const URI = process.env.MONGODB_URL? process.env.MONGODB_URL : console.log('No found database');
 
 mongoose.connect(URI,{
     useUnifiedTopology: true,

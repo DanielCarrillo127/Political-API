@@ -48,7 +48,6 @@ controller.newAttendance = async (req, res) => {
 
 }
 
-
 const findUserAttendant = async (attendantCedula) =>{
      const attendant = await userModel.findOne({ cedula: attendantCedula }, "-password").lean()
      if(attendant){
@@ -57,8 +56,6 @@ const findUserAttendant = async (attendantCedula) =>{
         return "not registered"
      }
 }
-
-
 
 controller.getAllAttendance = async (req, res) => {
     const user = await userModel.findOne({ cedula: req.body.userCedula })
@@ -70,8 +67,6 @@ controller.getAllAttendance = async (req, res) => {
     res.status(200).json({ attendance })
 
 }
-
-
 
 controller.deleteAttendance = async (req, res) => {
      if (!req.body.userCedula || !req.body.eventid || !req.body.attendantCedula) return res.sendStatus(400)
@@ -96,10 +91,6 @@ controller.deleteAttendance = async (req, res) => {
         res.status(500).json({ data: "Server internal error" })
     }
 }
-
-
-
-
 
 
 module.exports = controller;
