@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt')
 
 //Create User
 controller.createUser = async (req, res) => {
-    if (!req.body.name || !req.body.cedula || !req.body.surnames || !req.body.password || !req.body.phoneNumber || !req.body.sex || !req.body.age) return res.sendStatus(400)
+    if (!req.body.name || !req.body.cedula || !req.body.surnames || !req.body.password || !req.body.phoneNumber || !req.body.sex || !req.body.age || !req.body.leaderid) return res.sendStatus(400)
     const user = await userModel.findOne({ cedula: req.body.cedula })
 
     try {
@@ -51,9 +51,48 @@ controller.createUser = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ data: "Server internal error", error: error })
     }
-
-
 }
+
+controller.registerVoter = async (req, res) => {
+    if (!req.body.name || !req.body.cedula || !req.body.surnames || !req.body.phoneNumber || !req.body.sex || !req.body.age || !req.body.leaderid) return res.sendStatus(400)
+    const user = await userModel.findOne({ cedula: req.body.cedula })
+
+    try {
+        if (!user) {
+            
+            let sexEnum = ""
+            if (req.body.sex == "1") {
+                sexEnum = "MALE"
+            } else if (req.body.sex == "2") {
+                sexEnum = "WOMEN"
+            } else {
+                sexEnum = "OTHERS"
+            }
+            const userInfo = {
+                "name": req.body.name,
+                "surnames": req.body.surnames,
+                "cedula": req.body.cedula,
+                "phoneNumber": req.body.phoneNumber,
+                "address": req.body.address,
+                "sex": sexEnum,
+                "age": req.body.age,
+                "leaderid": req.body.leaderid ? req.body.leaderid : null,
+                "votingBooth": req.body.votingBooth ? req.body.votingBooth : null,
+                "table": req.body.table ? req.body.table : null,
+                "productiveSection": req.body.productiveSection ? req.body.productiveSection : "other",
+            }
+            await userModel.create(userInfo)
+            return res.status(201).json({ message: "User created sucefully!" })
+
+        } else {
+            return res.status(208).json({ message: "User already exist" })
+        }
+
+    } catch (error) {
+        return res.status(500).json({ data: "Server internal error", error: error })
+    }
+}
+
 //logimUser
 controller.loginUser = async (req, res) => {
     try {

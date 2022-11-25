@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const router = Router();
-const { createUser, getAllUsers, deleteUser, loginUser, getAllVotersByLeader, getAllVotersByCoordinator, getAllCoordinators, getAllLeaders, getAllLeadersByCoordinators, setRole, updateUser } = require('../controllers/userRoutes.controller');
+const { createUser, getAllUsers, deleteUser, loginUser, getAllVotersByLeader, getAllVotersByCoordinator, getAllCoordinators, getAllLeaders, getAllLeadersByCoordinators, setRole, updateUser, registerVoter } = require('../controllers/userRoutes.controller');
 
 router.route('/')
     .get((req, res) => {
@@ -11,6 +11,10 @@ router.route('/')
 //CREATE
 router.route('/newUser')
     .post(createUser)
+
+
+    router.route('/registerVoter')
+    .post(registerVoter)
 
 router.route('/setRole')
     .post(setRole)
