@@ -21,25 +21,25 @@ router.route('/setRole')
 
 // //READ
 router.route('/getAllUsers')
-    .get(getAllUsers)
+    .post(getAllUsers)
 
 router.route('/loginUser')
     .post(loginUser)
 
 router.route('/getAllVotersByLeader')
-    .get(getAllVotersByLeader)
+    .post(getAllVotersByLeader)
 
 router.route('/getAllVotersByCoordinator')
-    .get(getAllVotersByCoordinator)
+    .post(getAllVotersByCoordinator)
 
 router.route('/getAllCoordinators')
-    .get(getAllCoordinators)
+    .post(getAllCoordinators)
 
 router.route('/getAllLeaders')
-    .get(getAllLeaders)
+    .post(getAllLeaders)
 
 router.route('/getAllLeadersByCoordinators')
-    .get(getAllLeadersByCoordinators)
+    .post(getAllLeadersByCoordinators)
 
 // //UPDATE
 router.route('/updateUser')
