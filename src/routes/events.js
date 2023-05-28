@@ -9,7 +9,7 @@ router.route('/newEvent')
 
 // //READ
 router.route('/getAllEvents')
-    .get(getAllEvents)
+    .post(getAllEvents)
 
 // //UPDATE date and address
 router.route('/updateEvent')

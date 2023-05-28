@@ -9,7 +9,7 @@ router.route('/newAttendance')
 
 // //READ
 router.route('/getAllAttendance')
-    .get(getAllAttendance)
+    .post(getAllAttendance)
 
 // //DELETE
 router.route('/deleteAttendance').delete(deleteAttendance)
