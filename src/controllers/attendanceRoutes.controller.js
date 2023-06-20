@@ -20,7 +20,7 @@ controller.newAttendance = async (req, res) => {
 
     
     const find = await findUserAttendant(req.body.attendantCedula)
-    if (find === "not registered" && !req.body.attendantNumber) { return res.json({ message: 'More information required'}) }
+    if (find === "not registered" && !req.body.attendantNumber) { return res.status(404).json({ message: 'More information required'}) }
 
     // //eliminate duplicity 
     const attendants = await attendanceModel.find({eventid: req.body.eventid}).lean()
@@ -84,7 +84,7 @@ controller.deleteAttendance = async (req, res) => {
             await attendanceModel.deleteOne({ eventid : req.body.eventid, _id: findAttendant._id });
             res.json("Delete sucefully")
         } else {
-            res.json({ message: 'attendant dont exist in database for this event' })
+            res.status(404).json({ message: 'attendant dont exist in database for this event' })
         }
 
     } catch (error) {

@@ -92,7 +92,7 @@ controller.deleteEvent = async (req, res) => {
             await eventModel.deleteOne({ eventid : req.body.eventid });
             res.json("Delete sucefully")
         } else {
-            res.json({ message: 'Event dont exist in database' })
+            res.status(404).json({ message: 'Event dont exist in database' })
         }
 
     } catch (error) {
