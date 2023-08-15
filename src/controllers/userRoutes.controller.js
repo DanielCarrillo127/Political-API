@@ -59,7 +59,15 @@ controller.registerVoter = async (req, res) => {
 
     try {
         if (!user) {
-            
+
+            const userLeader = await userModel.findOne({ cedula: req.body.leaderid })
+            if (!userLeader) { return res.status(404).json({ message: 'Leader cedula not found' }) } else {
+                if (userLeader.role === "VOTER") {
+                    userLeader.role = "LEADER"
+                    await userLeader.save()
+                }
+            }
+
             let sexEnum = ""
             if (req.body.sex == "1") {
                 sexEnum = "MALE"
@@ -72,6 +80,7 @@ controller.registerVoter = async (req, res) => {
                 "name": req.body.name,
                 "surnames": req.body.surnames,
                 "cedula": req.body.cedula,
+                "password": "null",
                 "phoneNumber": req.body.phoneNumber,
                 "address": req.body.address,
                 "sex": sexEnum,
@@ -261,14 +270,18 @@ controller.setRole = async (req, res) => {
     const newRole = req.body.newRole;
 
     try {
-
         if (user !== null) {
-            await userModel.findOneAndUpdate({ cedula: userUpdateCedula }, { role: newRole })
+            if (newRole === "COORDINATOR" || newRole === "LEADER") {
+                const salt = await bcrypt.genSalt(10)
+                const userUpdatepassword = await bcrypt.hash(userUpdateCedula, salt)
+                await userModel.findOneAndUpdate({ cedula: userUpdateCedula }, { role: newRole, password: userUpdatepassword })
+            } else {
+                await userModel.findOneAndUpdate({ cedula: userUpdateCedula }, { role: newRole })
+            }
             res.json("Update sucefully")
         } else {
             res.json({ message: 'id Missing in database' })
         }
-
     } catch (error) {
         res.status(500).json({ data: "Server internal error" })
     }
@@ -303,7 +316,7 @@ controller.updateUser = async (req, res) => {
                 "productiveSection": req.body.newProductiveSection ? req.body.newProductiveSection : user.productiveSection,
             }
             await userModel.findOneAndUpdate({ cedula: req.body.userCedula }, newUser)
-            return res.json({message: 'User Update Sucefully'})
+            return res.json({ message: 'User Update Sucefully' })
         } else {
             return res.sendStatus(403)
         }
@@ -330,5 +343,38 @@ controller.deleteUser = async (req, res) => {
         res.status(500).json({ data: "Server internal error" })
     }
 }
+
+controller.getCountVoters = async (req, res) => {
+
+    const user = await userModel.findOne({ cedula: req.body.userCedula })
+    if (!user) { return res.status(404).json({ message: 'User not found' }) }
+    if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
+    
+    const result = {
+        voters: 0,
+        activeLeaders: 0,
+        activeCoordinators: 0,
+    }
+
+    const users = await userModel.find()
+    users.forEach((user) => {
+        if (user.role === "VOTER" || user.role === "COORDINATOR" || user.role === "LEADER") {
+            result.voters += 1
+        }
+        if (user.role === "LEADER") {
+            result.activeLeaders += 1
+        }
+        if (user.role === "COORDINATOR") {
+            result.activeCoordinators += 1
+        }
+    });
+
+    res.status(200).json({ result })
+
+}
+// controller.GetCountVotersByUser = async (req, res) => {
+//     //[cedulaLeader, Nombre, role, totalVotantes]
+// }
+
 
 module.exports = controller;

@@ -1,12 +1,15 @@
 const { Router } = require('express');
 const router = Router();
-const { createUser, getAllUsers, deleteUser, loginUser, getAllVotersByLeader, getAllVotersByCoordinator, getAllCoordinators, getAllLeaders, getAllLeadersByCoordinators, setRole, updateUser, registerVoter } = require('../controllers/userRoutes.controller');
+const { createUser, getAllUsers, deleteUser, loginUser, getAllVotersByLeader, getAllVotersByCoordinator, getAllCoordinators, getAllLeaders, getAllLeadersByCoordinators, setRole, updateUser, registerVoter,getCountVoters } = require('../controllers/userRoutes.controller');
 
 router.route('/')
     .get((req, res) => {
         res.json(
             { message: 'API developed by Dcarrillo' })
     })
+
+    // // GET
+router.route('/stats').post(getCountVoters)
 
 //CREATE
 router.route('/newUser')

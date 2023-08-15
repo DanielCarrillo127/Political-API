@@ -18,7 +18,7 @@ controller.decodeToken = async (req, res) => {
         const token = authHeader
         const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
         return decoded
-        console.log(decoded)
+        // console.log(decoded)
     } catch (error) {
         console.log(error)
         return false
