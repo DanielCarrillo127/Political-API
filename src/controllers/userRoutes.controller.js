@@ -197,7 +197,7 @@ controller.getAllVotersByCoordinator = async (req, res) => {
     console.log(leaders)
     users.forEach((user) => {
         const found = leaders.find(leader => leader === user.leaderid);
-        if ((user.role === "VOTER" || user.role === "LEADER") && found !== null) {
+        if ((user.role === "VOTER" || user.role === "LEADER") && found !== null && !result.includes(user)) {
             result.push(user)
         }
     });
