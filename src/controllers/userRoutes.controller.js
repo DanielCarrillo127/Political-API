@@ -61,9 +61,13 @@ controller.registerVoter = async (req, res) => {
         if (!user) {
 
             const userLeader = await userModel.findOne({ cedula: req.body.leaderid })
-            if (!userLeader) { return res.status(404).json({ message: 'Leader cedula not found' }) } else {
+            if (!userLeader) { return res.status(404).json({ message: 'Leader cedula not found' }) } 
+            else {
                 if (userLeader.role === "VOTER") {
+                    const salt = await bcrypt.genSalt(10)
+                    const userUpdatepassword = await bcrypt.hash(userLeader.cedula, salt)
                     userLeader.role = "LEADER"
+                    userLeader.password = userUpdatepassword
                     await userLeader.save()
                 }
             }
@@ -185,14 +189,15 @@ controller.getAllVotersByCoordinator = async (req, res) => {
     const result = []
 
     users.forEach((user) => {
-        if (user.role === "LEADER" && user.leaderid === leaderReqId) {
+        if ((user.role === "LEADER" || user.role === "COORDINATOR") && user.leaderid === leaderReqId) {
             leaders.push(user.cedula)
             result.push(user)
         }
     });
+    console.log(leaders)
     users.forEach((user) => {
         const found = leaders.find(leader => leader === user.leaderid);
-        if (user.role === "VOTER" && found !== null) {
+        if ((user.role === "VOTER" || user.role === "LEADER") && found !== null) {
             result.push(user)
         }
     });
@@ -349,7 +354,7 @@ controller.getCountVoters = async (req, res) => {
     const user = await userModel.findOne({ cedula: req.body.userCedula })
     if (!user) { return res.status(404).json({ message: 'User not found' }) }
     if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
-    
+
     const result = {
         voters: 0,
         activeLeaders: 0,

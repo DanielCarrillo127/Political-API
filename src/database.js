@@ -9,6 +9,7 @@ mongoose.connect(URI,{
     
 })
 .then(() => {
+    console.log(URI)
     console.log("Success when connecting to the database");
 })
 .catch(() => {
