@@ -61,7 +61,7 @@ controller.registerVoter = async (req, res) => {
         if (!user) {
 
             const userLeader = await userModel.findOne({ cedula: req.body.leaderid })
-            if (!userLeader) { return res.status(404).json({ message: 'Leader cedula not found' }) } 
+            if (!userLeader) { return res.status(404).json({ message: 'Leader cedula not found' }) }
             else {
                 if (userLeader.role === "VOTER") {
                     const salt = await bcrypt.genSalt(10)
@@ -194,7 +194,6 @@ controller.getAllVotersByCoordinator = async (req, res) => {
             result.push(user)
         }
     });
-    console.log(leaders)
     users.forEach((user) => {
         const found = leaders.find(leader => leader === user.leaderid);
         if ((user.role === "VOTER" || user.role === "LEADER") && found !== null && !result.includes(user)) {
@@ -297,30 +296,43 @@ controller.updateUser = async (req, res) => {
     //sent userCedula for the userifself or the voter
     const user = await userModel.findOne({ cedula: req.body.userCedula })
     if (!user) { return res.status(404).json({ message: 'User not found' }) }
-    if (user.role === "VOTER") { return res.status(403).send({ message: 'Action not allowed' }) }
 
     try {
         //token verification for users
         if (await auth.verifyToken(req, res)) {
-            const salt = await bcrypt.genSalt(10)
 
+            const userData = await userModel.findOne({ cedula: req.body.currentCedula })
+            if (!userData) { return res.status(404).json({ message: 'User not found' }) }
+            
             if (req.body.newPassword) {
+                const salt = await bcrypt.genSalt(10)
                 req.body.newPassword = await bcrypt.hash(req.body.newPassword, salt)
             }
 
-            const newUser = {
-                "name": req.body.newName ? req.body.newName : user.name,
-                "surnames": req.body.newSurname ? req.body.newSurname : user.surnames,
-                "password": req.body.newPassword ? req.body.newPassword : user.password,
-                "age": req.body.newAge ? req.body.newAge : user.age,
-                "phoneNumber": req.body.newPhoneNumber ? req.body.newPhoneNumber : user.phoneNumber,
-                "leaderid": req.body.newLeaderid ? req.body.newLeaderid : user.leaderid,
-                "address": req.body.NewAddress ? req.body.NewAddress : user.address,
-                "votingBooth": req.body.newVotingBooth ? req.body.newVotingBooth : user.votingBooth,
-                "table": req.body.newTable ? req.body.newTable : user.table,
-                "productiveSection": req.body.newProductiveSection ? req.body.newProductiveSection : user.productiveSection,
+            let sexEnum = ""
+            if (req.body.newSex == "1") {
+                sexEnum = "MALE"
+            } else if (req.body.newSex == "2") {
+                sexEnum = "WOMEN"
+            } else {
+                sexEnum = "OTHERS"
             }
-            await userModel.findOneAndUpdate({ cedula: req.body.userCedula }, newUser)
+
+            const newUser = {
+                "name": req.body.newName ? req.body.newName : userData.name,
+                "surnames": req.body.newSurname ? req.body.newSurname : userData.surnames,
+                "password": req.body.newPassword ? req.body.newPassword : userData.password,
+                "cedula": req.body.newCedula ? req.body.newCedula : userData.cedula,
+                "sex": req.body.newSex ? sexEnum : userData.sex,
+                "age": req.body.newAge ? req.body.newAge : userData.age,
+                "phoneNumber": req.body.newPhoneNumber ? req.body.newPhoneNumber : userData.phoneNumber,
+                "leaderid": req.body.newLeaderid ? req.body.newLeaderid : userData.leaderid,
+                "address": req.body.newAddress ? req.body.newAddress : userData.address,
+                "votingBooth": req.body.newVotingBooth ? req.body.newVotingBooth : userData.votingBooth,
+                "table": req.body.newTable ? req.body.newTable : userData.table,
+                "productiveSection": req.body.newProductiveSection ? req.body.newProductiveSection : userData.productiveSection,
+            }
+            await userModel.findOneAndUpdate({ cedula: req.body.currentCedula }, newUser)
             return res.json({ message: 'User Update Sucefully' })
         } else {
             return res.sendStatus(403)
