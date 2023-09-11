@@ -303,7 +303,7 @@ controller.updateUser = async (req, res) => {
 
             const userData = await userModel.findOne({ cedula: req.body.currentCedula })
             if (!userData) { return res.status(404).json({ message: 'User not found' }) }
-            
+
             if (req.body.newPassword) {
                 const salt = await bcrypt.genSalt(10)
                 req.body.newPassword = await bcrypt.hash(req.body.newPassword, salt)
@@ -392,6 +392,35 @@ controller.getCountVoters = async (req, res) => {
 // controller.GetCountVotersByUser = async (req, res) => {
 //     //[cedulaLeader, Nombre, role, totalVotantes]
 // }
+
+
+controller.updateUserPassword = async (req, res) => {
+    // userCedula,updateUserCedula,oldPassword,newPassword --> /updateUserPassword
+    const user = await userModel.findOne({ cedula: req.body.userCedula })
+    if (!user) { return res.status(404).json({ message: 'User not found' }) }
+    try {
+        //token verification for users
+        if (await auth.verifyToken(req, res)) {
+            const userData = await userModel.findOne({ cedula: req.body.updateUserCedula })
+            if (!userData) { return res.status(404).json({ message: 'User update not found' }) }
+            let newPassword;
+            const validOldPassword = await bcrypt.compare(req.body.oldPassword,userData.password);
+            if (validOldPassword) {
+                const salt = await bcrypt.genSalt(10)
+                newPassword = await bcrypt.hash(req.body.newPassword, salt)
+                await userModel.findOneAndUpdate({ cedula: userData.cedula }, { "password": newPassword })
+                return res.json({ message: 'User Password Update Sucefully' })
+            } else {
+                return res.sendStatus(403).json({ message: 'La contraseña actual es incorrecta.' })
+            }
+        } else {
+            return res.sendStatus(403)
+        }
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ data: "Server internal error" })
+    }
+}
 
 
 module.exports = controller;

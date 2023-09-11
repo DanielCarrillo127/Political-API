@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const router = Router();
-const { createUser, getAllUsers, deleteUser, loginUser, getAllVotersByLeader, getAllVotersByCoordinator, getAllCoordinators, getAllLeaders, getAllLeadersByCoordinators, setRole, updateUser, registerVoter,getCountVoters } = require('../controllers/userRoutes.controller');
+const { createUser, getAllUsers, deleteUser, loginUser, getAllVotersByLeader, getAllVotersByCoordinator, getAllCoordinators, getAllLeaders, getAllLeadersByCoordinators, setRole, updateUser, registerVoter,getCountVoters, updateUserPassword } = require('../controllers/userRoutes.controller');
 
 router.route('/')
     .get((req, res) => {
@@ -47,6 +47,9 @@ router.route('/getAllLeadersByCoordinators')
 // //UPDATE
 router.route('/updateUser')
     .post(updateUser)
+
+router.route('/updateUserPassword')
+    .post(updateUserPassword)
 
 // //DELETE
 router.route('/deleteUser').delete(deleteUser)
