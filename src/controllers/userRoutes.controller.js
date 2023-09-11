@@ -411,7 +411,7 @@ controller.updateUserPassword = async (req, res) => {
                 await userModel.findOneAndUpdate({ cedula: userData.cedula }, { "password": newPassword })
                 return res.json({ message: 'User Password Update Sucefully' })
             } else {
-                return res.sendStatus(403).json({ message: 'La contraseña actual es incorrecta.' })
+                return res.status(404).json({ message: 'Tu contraseña actual es incorrecta.' })
             }
         } else {
             return res.sendStatus(403)
