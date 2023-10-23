@@ -156,7 +156,7 @@ function countGeneralStatus(array, parcialCount) {
         unmarkedVotes: conutGeneralVotes.unmarkedVotes,
         totalTables: array.length,
         totalVotes: conutGeneralVotes.generalTotal,
-        VotesByCandidate: total,
+        votesByCandidate: total,
         partialVotesAt12: partialVotes.votesAt12,
         partialVotesAt4: partialVotes.votesAt4
     }
@@ -189,12 +189,12 @@ controller.getVotes = async (req, res) => {
 controller.getGeneralStatus = async (req, res) => {
 
     const user = await userModel.findOne({ cedula: req.body.userCedula })
-    if (user.role === "VOTER" || user.role === "LEADER") { return res.status(403).send({ message: 'Action not allowed' }) }
+    if (user?.role === "VOTER" || user?.role === "LEADER") { return res.status(403).send({ message: 'Action not allowed' }) }
     if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
 
     try {
 
-        const votes = await votesModel.find({}, '-img')
+        const votes = await votesModel.find({status: { $in: ["APROBADO"] }}, '-img')
             .populate("witnessId")
             .exec()
         const countPartialVotes = await votesCounterModel.find()
