@@ -163,6 +163,84 @@ function countGeneralStatus(array, parcialCount) {
     return data
 }
 
+
+const options = {
+
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    // timeZoneName: 'short',
+
+}
+
+function complianceReport(votes, countPartialVotes, witness) {
+    const result = [];
+    witness.forEach(witness => {
+        const voteRegister = votes.filter(vote => vote.witnessId.toString() === witness._id.toString())
+        if (voteRegister.length > 1) {
+            voteRegister.map(voteRegister => {
+                const parcialCountRegister = countPartialVotes.find(item => (item.witnessId.toString() === voteRegister.witnessId.toString() && item.table === voteRegister.table && item.votingBooth === voteRegister.votingBooth))
+                const register = {
+                    Nombre_testigo: witness.name + " " + witness.surnames,
+                    Telefono: witness.phoneNumber,
+                    Cedula: witness.cedula,
+                    Puesto_votacion: voteRegister.votingBooth,
+                    Mesa: voteRegister.table,
+                    Es_coordinador: witness?.isCoordinator ? "Si" : "No",
+                    Envio_Resgistro_12pm: parcialCountRegister?.votesAt12 && (parcialCountRegister?.votesAt12 !== 0 || parcialCountRegister?.votesAt12 !== undefined || parcialCountRegister?.votesAt12 !== "") ? "Si" : "No",
+                    Envio_Resgistro_4pm: parcialCountRegister?.votesAt4 && (parcialCountRegister?.votesAt4 !== 0 || parcialCountRegister?.votesAt4 !== undefined || parcialCountRegister?.votesAt4 !== "") ? "Si" : "No",
+                    Envio_Resgistro_E14: voteRegister ? `Si, Estado: ${voteRegister.status}` : "No",
+                    Fecha_envio_Resgistro_E14: voteRegister ? new Date(voteRegister.updated_at).toLocaleString(undefined, options) : "",
+                }
+                result.push(register)
+            })
+        } else {
+            const parcialCountRegister = countPartialVotes.find(item => (item.witnessId.toString() === witness._id.toString() && item.table === witness.tableInCharge && item.votingBooth === witness.votingBoothInCharge))
+            const register = {
+                Nombre_testigo: witness.name + " " + witness.surnames,
+                Telefono: witness.phoneNumber,
+                Cedula: witness.cedula,
+                Puesto_votacion: witness.votingBoothInCharge,
+                Mesa: witness.tableInCharge,
+                Es_coordinador: witness?.isCoordinator ? "Si" : "No",
+                Envio_Resgistro_12pm: parcialCountRegister.votesAt12 && (parcialCountRegister?.votesAt12 !== 0 || parcialCountRegister?.votesAt12 !== undefined || parcialCountRegister?.votesAt12 !== "") ? "Si" : "No",
+                Envio_Resgistro_4pm: parcialCountRegister.votesAt4 && (parcialCountRegister?.votesAt4 !== 0 || parcialCountRegister?.votesAt4 !== undefined || parcialCountRegister?.votesAt4 !== "") ? "Si" : "No",
+                Envio_Resgistro_E14: voteRegister[0] ? `Si, Estado: ${voteRegister[0].status}` : "No",
+                Fecha_envio_Resgistro_E14: voteRegister[0] ? new Date(voteRegister[0].updated_at).toLocaleString(undefined, options) : "",
+            }
+            result.push(register)
+        }
+
+
+    })
+    return result
+}
+
+//reports
+controller.getComplianceReport = async (req, res) => {
+    const user = await userModel.findOne({ cedula: req.body.userCedula })
+    if (user?.role === "VOTER" || user?.role === "LEADER") { return res.status(403).send({ message: 'Action not allowed' }) }
+    if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
+
+    try {
+        const witness = await witnessModel.find()
+        const votes = await votesModel.find()
+            .exec()
+        const countPartialVotes = await votesCounterModel.find()
+
+
+        if (votes && countPartialVotes && witness) {
+            const compliance = complianceReport(votes, countPartialVotes, witness);
+            return res.status(200).json(compliance);
+        }
+    } catch (error) {
+        return res.status(500).json({ data: "Server internal error", error: error });
+    }
+}
+
 //get all pending and decline votes
 controller.getVotes = async (req, res) => {
     if (!req.body.status) return res.sendStatus(400); //["APROBADO","PENDIENTE","RECHAZADA"]
@@ -194,7 +272,7 @@ controller.getGeneralStatus = async (req, res) => {
 
     try {
 
-        const votes = await votesModel.find({status: { $in: ["APROBADO"] }}, '-img')
+        const votes = await votesModel.find({ status: { $in: ["APROBADO"] } }, '-img')
             .populate("witnessId")
             .exec()
         const countPartialVotes = await votesCounterModel.find()
