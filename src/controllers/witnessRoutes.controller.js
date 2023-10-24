@@ -206,8 +206,8 @@ function complianceReport(votes, countPartialVotes, witness) {
                 Puesto_votacion: witness.votingBoothInCharge,
                 Mesa: witness.tableInCharge,
                 Es_coordinador: witness?.isCoordinator ? "Si" : "No",
-                Envio_Resgistro_12pm: parcialCountRegister.votesAt12 && (parcialCountRegister?.votesAt12 !== 0 || parcialCountRegister?.votesAt12 !== undefined || parcialCountRegister?.votesAt12 !== "") ? "Si" : "No",
-                Envio_Resgistro_4pm: parcialCountRegister.votesAt4 && (parcialCountRegister?.votesAt4 !== 0 || parcialCountRegister?.votesAt4 !== undefined || parcialCountRegister?.votesAt4 !== "") ? "Si" : "No",
+                Envio_Resgistro_12pm: parcialCountRegister?.votesAt12 && (parcialCountRegister?.votesAt12 !== 0 || parcialCountRegister?.votesAt12 !== undefined || parcialCountRegister?.votesAt12 !== "") ? "Si" : "No",
+                Envio_Resgistro_4pm: parcialCountRegister?.votesAt4 && (parcialCountRegister?.votesAt4 !== 0 || parcialCountRegister?.votesAt4 !== undefined || parcialCountRegister?.votesAt4 !== "") ? "Si" : "No",
                 Envio_Resgistro_E14: voteRegister[0] ? `Si, Estado: ${voteRegister[0].status}` : "No",
                 Fecha_envio_Resgistro_E14: voteRegister[0] ? new Date(voteRegister[0].updated_at).toLocaleString(undefined, options) : "",
             }
