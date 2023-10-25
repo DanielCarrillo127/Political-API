@@ -144,7 +144,6 @@ function countPartialVotes(array) {
         votesAt4: votesAt4,
     }
 }
-
 function countGeneralStatus(array, parcialCount) {
     const conutGeneralVotes = countVotes(array);
     const total = totalVotesByCandidate(array);
@@ -163,7 +162,6 @@ function countGeneralStatus(array, parcialCount) {
     return data
 }
 
-
 const options = {
 
     year: 'numeric',
@@ -175,7 +173,6 @@ const options = {
     // timeZoneName: 'short',
 
 }
-
 function complianceReport(votes, countPartialVotes, witness) {
     const result = [];
     witness.forEach(witness => {
@@ -219,6 +216,81 @@ function complianceReport(votes, countPartialVotes, witness) {
     return result
 }
 
+function missingTablesReport(votes, witnesses, votingBooths) {
+    const result = [];
+    votingBooths.forEach(votingBooth => {
+        for (let index = 1; index <= votingBooth.mesas; index++) {
+            const voteRegister = votes.find((vote) => vote.votingBooth === votingBooth.puesto && vote.table === index.toString())
+
+            const witnessRegister = witnesses.find((witness) => witness.votingBoothInCharge === votingBooth.puesto && witness.tableInCharge === index.toString())
+
+            if (!voteRegister) {
+                const register = {
+                    Puesto_votacion: votingBooth.puesto,
+                    Mesa_Faltante: index,
+                    Testigo_reponsable: witnessRegister ? witnessRegister.name + " " + witnessRegister.surnames : "Sin testigo asignado",
+                    Cedula: witnessRegister ? witnessRegister.cedula : " ",
+                    Telefono: witnessRegister ? witnessRegister.phoneNumber : " ",
+                }
+                result.push(register)
+            }
+
+        }
+    })
+    return result
+}
+
+function votesPerCandidatePerRegister(votersData) {
+    const voteCounts = [];
+    //votos por candidato
+    for (const key in votersData) {
+        if (votersData.hasOwnProperty(key) && !isNaN(parseInt(key))) {
+            const index = votersData[key].index;
+            const votes = parseInt(votersData[key].votes);
+            const name = votersData[key].name;
+            const existingEntry = voteCounts.find(entry => entry.index === index);
+
+            if (existingEntry) {
+                existingEntry.votes += votes;
+            } else {
+                voteCounts.push({ index, name, votes });
+            }
+        }
+    }
+    return voteCounts
+}
+
+function generalReport(votes) {
+    const result = [];
+    votes.forEach(vote => {
+        const witness = vote.witnessId
+        //votos por candidato
+        const counterPerCandidates = votesPerCandidatePerRegister(vote.votersData)
+        const resultDistinct = counterPerCandidates.reduce((acc, item) => {
+            acc.totalVotes += item.votes;
+            acc.votesByCandidate[item.name] = item.votes.toString();
+            return acc;
+        }, { totalVotes: 0, votesByCandidate: {} });
+
+        const register = {
+            Puesto_votacion: vote.votingBooth,
+            Mesa_votacion: vote.table,
+            Testigo_reponsable: witness.name + " " + witness.surnames,
+            Cedula: witness.cedula,
+            Telefono: witness.phoneNumber,
+            ...resultDistinct.votesByCandidate,
+            Votos_nulos: vote.votersData.nullVotes,
+            Votos_en_blancos: vote.votersData.whiteVotes,
+            Votos_no_marcados: vote.votersData.unmarkedVotes,
+            Total: (resultDistinct.totalVotes +  Number(vote.votersData.nullVotes) + Number(vote.votersData.whiteVotes) + Number(vote.votersData.unmarkedVotes)).toString(),
+            Estado: vote.status,
+            Url_evidencia: vote.img
+        }
+        result.push(register)
+    })
+    return result
+}
+
 //reports
 controller.getComplianceReport = async (req, res) => {
     const user = await userModel.findOne({ cedula: req.body.userCedula })
@@ -240,6 +312,47 @@ controller.getComplianceReport = async (req, res) => {
         return res.status(500).json({ data: "Server internal error", error: error });
     }
 }
+
+controller.getMissingTablesReport = async (req, res) => {
+    const user = await userModel.findOne({ cedula: req.body.userCedula })
+    if (user?.role === "VOTER" || user?.role === "LEADER") { return res.status(403).send({ message: 'Action not allowed' }) }
+    if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
+
+    if (!req.body.votingBooth) return res.sendStatus(400);
+
+    try {
+        const witness = await witnessModel.find()
+        const votes = await votesModel.find()
+            // .populate("witnessId")
+            .exec()
+
+        if (votes && witness) {
+            const compliance = missingTablesReport(votes, witness, req.body.votingBooth);
+            return res.status(200).json(compliance);
+        }
+    } catch (error) {
+        return res.status(500).json({ data: "Server internal error", error: error });
+    }
+}
+controller.getGeneralReport = async (req, res) => {
+    const user = await userModel.findOne({ cedula: req.body.userCedula })
+    if (user?.role === "VOTER" || user?.role === "LEADER") { return res.status(403).send({ message: 'Action not allowed' }) }
+    if (!await auth.verifyToken(req, res)) { return res.sendStatus(401) }
+
+    try {
+        const votes = await votesModel.find()
+            .populate("witnessId")
+            .exec()
+
+        if (votes) {
+            const compliance = generalReport(votes);
+            return res.status(200).json(compliance);
+        }
+    } catch (error) {
+        return res.status(500).json({ data: "Server internal error", error: error });
+    }
+}
+
 
 //get all pending and decline votes
 controller.getVotes = async (req, res) => {

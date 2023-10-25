@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const router = Router();
-const { registerVote, validateWitness, getVotes, updateVoteStatus, registerPartialCount, getGeneralStatus, getComplianceReport } = require('../controllers/witnessRoutes.controller');
+const { registerVote, validateWitness, getVotes, updateVoteStatus, registerPartialCount, getGeneralStatus, getComplianceReport, getMissingTablesReport, getGeneralReport } = require('../controllers/witnessRoutes.controller');
 // const multer = require('multer');
 
 // const path = require('path');
@@ -33,6 +33,10 @@ router.route("/getGeneralStatus")
     .post(getGeneralStatus)
 router.route('/getComplianceReport')
     .post(getComplianceReport)
+router.route('/getMissingTablesReport')
+    .post(getMissingTablesReport)
+router.route('/getGeneralReport')
+    .post(getGeneralReport)
 
 // //UPDATE date and address
 router.route('/updateVoteStatus')
