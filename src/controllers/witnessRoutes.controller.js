@@ -89,7 +89,7 @@ function countVotes(array) {
     array.map(register => {
         if (register.votersData) {
             for (const [key, value] of Object.entries(register.votersData)) {
-                if (value?.isPrincipal === true && register.status === "APROBADO") totalVotes += Number(value.votes) || 0;
+                if (value?.isPrincipal === true && register.status === "APROBADO") totalVotes += Number(value?.votes) || 0;
                 if (value?.votes) generalTotal += Number(value.votes) || 0;
                 if (key === "nullVotes") nullVotes += Number(value) || 0;
                 if (key === "whiteVotes") whiteVotes += Number(value) || 0;
@@ -181,11 +181,11 @@ function complianceReport(votes, countPartialVotes, witness) {
             voteRegister.map(voteRegister => {
                 const parcialCountRegister = countPartialVotes.find(item => (item.witnessId.toString() === voteRegister.witnessId.toString() && item.table === voteRegister.table && item.votingBooth === voteRegister.votingBooth))
                 const register = {
-                    Nombre_testigo: witness.name + " " + witness.surnames,
-                    Telefono: witness.phoneNumber,
-                    Cedula: witness.cedula,
-                    Puesto_votacion: voteRegister.votingBooth,
-                    Mesa: voteRegister.table,
+                    Nombre_testigo: witness?.name + " " + witness?.surnames,
+                    Telefono: witness?.phoneNumber,
+                    Cedula: witness?.cedula,
+                    Puesto_votacion: voteRegister?.votingBooth,
+                    Mesa: voteRegister?.table,
                     Es_coordinador: witness?.isCoordinator ? "Si" : "No",
                     Envio_Resgistro_12pm: parcialCountRegister?.votesAt12 && (parcialCountRegister?.votesAt12 !== 0 || parcialCountRegister?.votesAt12 !== undefined || parcialCountRegister?.votesAt12 !== "") ? "Si" : "No",
                     Envio_Resgistro_4pm: parcialCountRegister?.votesAt4 && (parcialCountRegister?.votesAt4 !== 0 || parcialCountRegister?.votesAt4 !== undefined || parcialCountRegister?.votesAt4 !== "") ? "Si" : "No",
@@ -197,11 +197,11 @@ function complianceReport(votes, countPartialVotes, witness) {
         } else {
             const parcialCountRegister = countPartialVotes.find(item => (item.witnessId.toString() === witness._id.toString() && item.table === witness.tableInCharge && item.votingBooth === witness.votingBoothInCharge))
             const register = {
-                Nombre_testigo: witness.name + " " + witness.surnames,
-                Telefono: witness.phoneNumber,
-                Cedula: witness.cedula,
-                Puesto_votacion: witness.votingBoothInCharge,
-                Mesa: witness.tableInCharge,
+                Nombre_testigo: witness?.name + " " + witness?.surnames,
+                Telefono: witness?.phoneNumber,
+                Cedula: witness?.cedula,
+                Puesto_votacion: witness?.votingBoothInCharge,
+                Mesa: witness?.tableInCharge,
                 Es_coordinador: witness?.isCoordinator ? "Si" : "No",
                 Envio_Resgistro_12pm: parcialCountRegister?.votesAt12 && (parcialCountRegister?.votesAt12 !== 0 || parcialCountRegister?.votesAt12 !== undefined || parcialCountRegister?.votesAt12 !== "") ? "Si" : "No",
                 Envio_Resgistro_4pm: parcialCountRegister?.votesAt4 && (parcialCountRegister?.votesAt4 !== 0 || parcialCountRegister?.votesAt4 !== undefined || parcialCountRegister?.votesAt4 !== "") ? "Si" : "No",
@@ -210,7 +210,6 @@ function complianceReport(votes, countPartialVotes, witness) {
             }
             result.push(register)
         }
-
 
     })
     return result
@@ -275,14 +274,14 @@ function generalReport(votes) {
         const register = {
             Puesto_votacion: vote.votingBooth,
             Mesa_votacion: vote.table,
-            Testigo_reponsable: witness.name + " " + witness.surnames,
-            Cedula: witness.cedula,
-            Telefono: witness.phoneNumber,
+            Testigo_reponsable: witness?.name + " " + witness?.surnames,
+            Cedula: witness?.cedula,
+            Telefono: witness?.phoneNumber,
             ...resultDistinct.votesByCandidate,
-            Votos_nulos: vote.votersData.nullVotes,
-            Votos_en_blancos: vote.votersData.whiteVotes,
-            Votos_no_marcados: vote.votersData.unmarkedVotes,
-            Total: (resultDistinct.totalVotes +  Number(vote.votersData.nullVotes) + Number(vote.votersData.whiteVotes) + Number(vote.votersData.unmarkedVotes)).toString(),
+            Votos_nulos: vote.votersData?.nullVotes,
+            Votos_en_blancos: vote.votersData?.whiteVotes,
+            Votos_no_marcados: vote.votersData?.unmarkedVotes,
+            Total: (resultDistinct.totalVotes +  Number(vote.votersData?.nullVotes) + Number(vote.votersData?.whiteVotes) + Number(vote.votersData?.unmarkedVotes)).toString(),
             Estado: vote.status,
             Url_evidencia: vote.img
         }
