@@ -17,6 +17,8 @@ controller.registerVote = async (req, res) => {
 
             if (!witness?.isCoordinator && (witness.tableInCharge !== req.body.table || witness.votingBoothInCharge !== req.body.votingBooth)) {
                 return res.status(400).json({ message: "Error, the table or place not match" })
+            } else if (witness?.isCoordinator && (witness.votingBoothInCharge !== req.body.votingBooth)) {
+                return res.status(400).json({ message: "Error, the table or place not match" })
             }
 
             const duplicate = await votesModel.findOne({ table: req.body.table, votingBooth: req.body.votingBooth })
@@ -210,7 +212,26 @@ function complianceReport(votes, countPartialVotes, witness) {
             }
             result.push(register)
         }
-
+        const parcialCountRegister = countPartialVotes.filter(item => (item.witnessId.toString() === witness._id.toString()))
+        if (parcialCountRegister.length > 1) {
+            parcialCountRegister.map(countRegister => {
+                if (!result.find(item => item.Mesa === countRegister.table && item.Cedula === witness.cedula)) {
+                    const register = {
+                        Nombre_testigo: witness?.name + " " + witness?.surnames,
+                        Telefono: witness?.phoneNumber,
+                        Cedula: witness?.cedula,
+                        Puesto_votacion: countRegister?.votingBooth,
+                        Mesa: countRegister?.table,
+                        Es_coordinador: witness?.isCoordinator ? "Si" : "No",
+                        Envio_Resgistro_12pm: countRegister?.votesAt12 && (countRegister?.votesAt12 !== 0 || countRegister?.votesAt12 !== undefined || countRegister?.votesAt12 !== "") ? "Si" : "No",
+                        Envio_Resgistro_4pm: countRegister?.votesAt4 && (countRegister?.votesAt4 !== 0 || countRegister?.votesAt4 !== undefined || countRegister?.votesAt4 !== "") ? "Si" : "No",
+                        Envio_Resgistro_E14: "No",
+                        Fecha_envio_Resgistro_E14: "",
+                    }
+                    result.push(register)
+                }
+            })
+        }
     })
     return result
 }
@@ -281,7 +302,7 @@ function generalReport(votes) {
             Votos_nulos: vote.votersData?.nullVotes,
             Votos_en_blancos: vote.votersData?.whiteVotes,
             Votos_no_marcados: vote.votersData?.unmarkedVotes,
-            Total: (resultDistinct.totalVotes +  Number(vote.votersData?.nullVotes) + Number(vote.votersData?.whiteVotes) + Number(vote.votersData?.unmarkedVotes)).toString(),
+            Total: (resultDistinct.totalVotes + Number(vote.votersData?.nullVotes) + Number(vote.votersData?.whiteVotes) + Number(vote.votersData?.unmarkedVotes)).toString(),
             Estado: vote.status,
             Url_evidencia: vote.img
         }
@@ -435,8 +456,20 @@ controller.registerPartialCount = async (req, res) => {
                 witnessId: witness._id,
                 table: req.body.table,
                 votingBooth: req.body.votingBooth,
-                votesAt12: req.body.votesAt12 !== "" ? req.body.votesAt12 : duplicate.votesAt12,
-                votesAt4: req.body.votesAt4 !== "" ? req.body.votesAt4 : duplicate?.votesAt4 ? duplicate?.votesAt4 : 0
+                // votesAt12: req.body.votesAt12 !== "" ? req.body.votesAt12 : duplicate?.votesAt12 ? duplicate?.votesAt12 : null,
+                // votesAt4: req.body.votesAt4 !== "" ? req.body.votesAt4 : duplicate?.votesAt4 ? duplicate?.votesAt4 : null
+            }
+
+            if (req.body?.votesAt12 !== "") {
+                voteInfo['votesAt12'] = req.body.votesAt12
+            } else if (duplicate?.votesAt12) {
+                voteInfo['votesAt12'] = duplicate?.votesAt12
+            }
+
+            if (req.body?.votesAt4 !== "") {
+                voteInfo['votesAt4'] = req.body.votesAt4
+            } else if (duplicate?.votesAt4) {
+                voteInfo['votesAt4'] = duplicate?.votesAt4
             }
 
             if (duplicate) {
